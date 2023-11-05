@@ -34,7 +34,8 @@ func main() {
 
 	key, err := os.ReadFile(identityFile)
 	if err != nil {
-		fmt.Printf("unable to read identity file (%s): %v", identityFile, err)
+		fmt.Printf("unable to read identity file (%s): %v\n", identityFile, err)
+		os.Exit(1)
 	}
 
 	var signer ssh.Signer
@@ -44,7 +45,8 @@ func main() {
 		signer, err = ssh.ParsePrivateKey(key)
 	}
 	if err != nil {
-		log.Fatalf("unable to decode private key")
+		fmt.Println("unable to decode private key")
+		os.Exit(1)
 	}
 
 	config := &ssh.ClientConfig{
@@ -58,7 +60,8 @@ func main() {
 	var localListener net.Listener
 	localListener, err = net.Listen("tcp", localAddr)
 	if err != nil {
-		log.Fatalf("failed to create local tunnel entrance (%s): %v", localAddr, err)
+		fmt.Printf("failed to create local tunnel entrance (%s): %v", localAddr, err)
+		os.Exit(1)
 	}
 
 	log.Printf("auto-ssh established on %s\n", localAddr)
@@ -77,20 +80,23 @@ func forward(localConn net.Conn, config *ssh.ClientConfig) {
 	// connect to the remote host
 	bClient, err := ssh.Dial("tcp", remoteAddr, config)
 	if err != nil {
-		log.Fatalf("failed to call remote address: %v", err)
+		fmt.Printf("failed to call remote address: %v", err)
+		os.Exit(1)
 	}
 
 	// Setup sshConn (type net.Conn)
 	sshConn, err := bClient.Dial("tcp", destAddr)
 	if err != nil {
-		log.Fatalf("failed to call destination address: %v", err)
+		fmt.Printf("failed to call destination address: %v", err)
+		os.Exit(1)
 	}
 
 	// Copy localConn.Reader to sshConn.Writer
 	go func() {
 		_, err = io.Copy(sshConn, localConn)
 		if err != nil {
-			log.Fatalf("io.Copy failed: %v", err)
+			fmt.Printf("io.Copy failed: %v", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -98,7 +104,8 @@ func forward(localConn net.Conn, config *ssh.ClientConfig) {
 	go func() {
 		_, err = io.Copy(localConn, sshConn)
 		if err != nil {
-			log.Fatalf("io.Copy failed: %v", err)
+			fmt.Printf("io.Copy failed: %v", err)
+			os.Exit(1)
 		}
 	}()
 }
