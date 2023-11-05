@@ -29,7 +29,7 @@ linux:
 	@echo Building Linux for amd
 	@GOOS=linux GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY}-linux-amd64 ${TARGET};
 	@echo Building Linux for arm
-	@GOOS=linux GOARCH=arm64 go build ${LDFLAGS} -o ${BINARY}-linux-arm64} ${TARGET};
+	@GOOS=linux GOARCH=arm64 go build ${LDFLAGS} -o ${BINARY}-linux-arm64 ${TARGET};
 
 darwin:
 	@echo Building Darwin for amd
