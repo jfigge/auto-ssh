@@ -3,7 +3,7 @@ PROJECT_NAME              = auto-ssh
 # build output
 BINARY           ?= ${PROJECT_NAME}
 BUILD_NUMBER     = $(shell git rev-list --count HEAD)
-TARGET           ?= auto-ssh
+TARGET           ?= us.figge.auto-ssh
 
 VERSION = $(shell git describe --tags --abbrev=0)
 COMMIT  = $(shell git rev-parse --short=7 HEAD)
