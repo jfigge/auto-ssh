@@ -14,11 +14,12 @@ import (
 )
 
 const (
-	GOOS_Linux   = "linux"
-	GOOS_Darwin  = "darwin"
-	GOOS_Windows = "windows"
+	GoosLinux   = "linux"
+	GoosDarwin  = "darwin"
+	GoosWindows = "windows"
 )
 
+// Version information, populaqted by the build process
 var (
 	Version     string // this variable is defined in Makefile
 	Commit      string // this variable is defined in Makefile
@@ -73,7 +74,7 @@ func main() {
 	}
 	wg.Wait()
 	if verboseFlag > 0 {
-		fmt.Printf("  Status - All tunnels closed.  Stopped\n")
+		fmt.Printf(" Status - All tunnels closed.  Stopped\n")
 	}
 }
 
@@ -86,11 +87,11 @@ func defaultValues() {
 	username = currentUser.Username
 
 	switch runtime.GOOS {
-	case GOOS_Linux:
+	case GoosLinux:
 		hostKeyFile = fmt.Sprintf("/home/%s/.ssh/known_hosts", username)
-	case GOOS_Darwin:
+	case GoosDarwin:
 		hostKeyFile = fmt.Sprintf("/Users/%s/.ssh/known_hosts", username)
-	case GOOS_Windows:
+	case GoosWindows:
 		hostKeyFile = fmt.Sprintf("C:\\Users\\%s\\.ssh\\known_hosts", username)
 	default:
 		fmt.Printf("  Error - unsupported OS type: %s\n", runtime.GOOS)

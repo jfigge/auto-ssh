@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -8,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -18,6 +21,9 @@ type Tunnel struct {
 	forwardAddr string
 	host        *Host
 }
+
+var connection = atomic.Int32{}
+var connections = atomic.Int32{}
 
 func NewTunnel(tunnelMap string) *Tunnel {
 	parts := strings.Split(tunnelMap, ":")
@@ -102,7 +108,7 @@ func (t *Tunnel) open(signer ssh.Signer) {
 	}
 
 	if verboseFlag > 0 {
-		fmt.Printf("  Status - auto-ssh listening on %s\n", t.localAddr)
+		fmt.Printf(" Status - auto-ssh listening on %s\n", t.localAddr)
 	}
 
 	for {
@@ -113,7 +119,7 @@ func (t *Tunnel) open(signer ssh.Signer) {
 			os.Exit(1)
 		}
 		if verboseFlag > 0 {
-			fmt.Printf("  Status - connection accepted %s\n", localConn.RemoteAddr())
+			fmt.Printf(" Status - connection accepted %s\n", localConn.RemoteAddr())
 		}
 		go t.forward(localConn)
 	}
@@ -142,39 +148,88 @@ func createHost(remoteAddr string, signer ssh.Signer) *Host {
 }
 
 func (t *Tunnel) forward(localConn net.Conn) {
-	if verboseFlag > 1 {
-		fmt.Printf("  Status - conneting to forward server %s\n", t.forwardAddr)
+	connection.Add(1)
+	id := connection.Load()
+
+	if verboseFlag > 0 {
+		fmt.Printf(" Status - id:%d conneting to forward server %s\n", id, t.forwardAddr)
 	}
-
 	sshConn := t.host.dial("tcp", t.forwardAddr)
-
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	closer := func() {
+		autoClose(ctx, sshConn, localConn, id)
+	}
+
+	connected1 := true
+	connected2 := true
 	// Copy localConn.Reader to sshConn.Writer
 	go func() {
+		connections.Add(1)
 		defer wg.Done()
 		_, err1 := io.Copy(sshConn, localConn)
+		connected1 = false
+		connections.Add(-1)
+		if verboseFlag > 1 {
+			fmt.Printf(" Status - id:%d c:%d closed1\n", id, connections.Load())
+		}
 		if err1 != nil {
 			fmt.Printf("  Error - failed to transmit request: %v\n", err1)
 			os.Exit(1)
+		}
+		if connected2 {
+			go closer()
 		}
 	}()
 
 	// Copy sshConn.Reader to localConn.Writer
 	go func() {
+		connections.Add(1)
 		defer wg.Done()
 		_, err2 := io.Copy(localConn, sshConn)
+		connected2 = false
+		connections.Add(-1)
+		if verboseFlag > 1 {
+			fmt.Printf(" Status - id:%d c:%d closed2\n", id, connections.Load())
+		}
 		if err2 != nil {
-			fmt.Printf(" Error - failed to receive response: %v\n", err2)
+			fmt.Printf("  Error - failed to receive response: %v\n", err2)
 			os.Exit(1)
+		}
+		if connected1 {
+			go closer()
 		}
 	}()
 
 	wg.Wait()
-
-	if verboseFlag > 0 {
-		fmt.Printf("  Status - closing connection %s\n", localConn.RemoteAddr())
+	cancel()
+	if verboseFlag == 1 {
+		fmt.Printf(" Status - id:%d closing connection %s\n", id, localConn.RemoteAddr())
+	} else if verboseFlag > 1 {
+		fmt.Printf(" Status - id:%d c:%d closing connection %s\n", id, connections.Load(), localConn.RemoteAddr())
 	}
-	_ = localConn.Close()
+}
+
+func autoClose(ctx context.Context, conn net.Conn, conn2 net.Conn, id int32) {
+	status := "terminated"
+	if verboseFlag > 1 {
+		fmt.Printf(" Status - id:%d c:%d auto-closer initiated\n", id, connections.Load())
+	}
+	t := time.NewTimer(30 * time.Second)
+	select {
+	case <-t.C:
+		status = "triggered"
+	case <-ctx.Done():
+	}
+	if conn != nil {
+		_ = conn.Close()
+	}
+	if conn2 != nil {
+		_ = conn2.Close()
+	}
+	if verboseFlag > 1 {
+		fmt.Printf(" Status - id:%d c:%d auto-closer %s\n", id, connections.Load(), status)
+	}
 }
