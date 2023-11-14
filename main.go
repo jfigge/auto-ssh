@@ -210,7 +210,7 @@ func help() {
 	fmt.Printf("  -p, --passphrase    Private key decryption password.\n")
 	fmt.Printf("  -h, --hostkey-file  Specify the known-hosts file. Defaulted. Disable using: -H \"\"\n")
 	fmt.Printf("  -v, --verbose       Verbose mode.  Prints progress debug messages.\n")
-	fmt.Printf("  -vv, --very-verbose Verbose mode.  Prints progress debug messages.\n")
+	fmt.Printf("  -vv, --very-verbose Verbose mode.  Prints extra debug messages.\n")
 	fmt.Printf("  -V, --version       Display version information.\n")
 	fmt.Printf("  -t, --tunnel        Define a tunnel:\n")
 	fmt.Printf("                        -t \"local:port:remote:port:forward:port\"\n")

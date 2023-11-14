@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>us.figge.auto-ssh</string>
+	<key>LimitLoadToSessionType</key>
+	<array>
+		<string>Aqua</string>
+		<string>Background</string>
+		<string>LoginWindow</string>
+		<string>StandardIO</string>
+		<string>System</string>
+	</array>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/jason.figge/Develop/shell/commands/auto-ssh</string>
+                <string>-u</string>
+                <string>ec2-user</string>
+                <string>-i</string>
+                <string>/Users/jason.figge/.ssh/pingidp2.pem</string>
+                <string>-t</string>
+                <string>127.0.0.1:8000:54.245.154.52:22:ccp-internal.gateway.review.innovationlabs.teradata.com:443</string>
+                <string>-t</string>
+                <string>127.0.0.1:8432:54.245.154.52:22:postgres.review.innovationlabs.teradata.com:5432</string>
+                <string>-t</string>
+                <string>127.0.0.1:8999:54.245.154.52:22:172.21.194.80:9999</string>
+                <string>-t</string>
+                <string>127.0.0.1:8031:54.245.154.52:22:172.21.194.80:9031</string>
+                <string>-t</string>
+                <string>127.0.0.1:7000:35.164.43.75:22:ccp-internal.gateway.staging.innovationlabs.teradata.com:443</string>
+                <string>-t</string>
+                <string>127.0.0.1:7432:35.164.43.75:22:postgres.staging.innovationlabs.teradata.com:5432</string>
+                <string>-t</string>
+                <string>127.0.0.1:7999:35.164.43.75:22:172.21.194.7:9999</string>
+                <string>-t</string>
+                <string>127.0.0.1:7031:35.164.43.75:22:172.21.194.7:9031</string>
+                <string>-H</string>
+                <string>/Users/jason.figge/.ssh/known_hosts</string>
+                <string>-vv</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/jason.figge/Develop/shell/commands/logs/auto-ssh.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/jason.figge/Develop/shell/commands/logs/auto-ssh.log</string>
+</dict>
+</plist>

@@ -115,7 +115,7 @@ func (t *Tunnel) open(signer ssh.Signer) {
 		var localConn net.Conn
 		localConn, err = localListener.Accept()
 		if err != nil {
-			fmt.Printf("  Error - listener accept failed: %v\v", err)
+			fmt.Printf("  Error - listener accept failed: %v\n", err)
 			os.Exit(1)
 		}
 		if verboseFlag > 0 {
@@ -173,11 +173,10 @@ func (t *Tunnel) forward(localConn net.Conn) {
 		connected1 = false
 		connections.Add(-1)
 		if verboseFlag > 1 {
-			fmt.Printf(" Status - id:%d c:%d closed1\n", id, connections.Load())
+			fmt.Printf(" Status - id:%d c:%d transmit tunnel closed\n", id, connections.Load())
 		}
-		if err1 != nil {
-			fmt.Printf("  Error - failed to transmit request: %v\n", err1)
-			os.Exit(1)
+		if err1 != nil && verboseFlag > 1 {
+			fmt.Printf("   Info - transmit encountered a closed tunnel: %v\n", err1)
 		}
 		if connected2 {
 			go closer()
@@ -192,11 +191,10 @@ func (t *Tunnel) forward(localConn net.Conn) {
 		connected2 = false
 		connections.Add(-1)
 		if verboseFlag > 1 {
-			fmt.Printf(" Status - id:%d c:%d closed2\n", id, connections.Load())
+			fmt.Printf(" Status - id:%d c:%d receive tunnel closed\n", id, connections.Load())
 		}
-		if err2 != nil {
-			fmt.Printf("  Error - failed to receive response: %v\n", err2)
-			os.Exit(1)
+		if err2 != nil && verboseFlag > 1 {
+			fmt.Printf("   Info - receive encountered a closed tunnel: %v\n", err2)
 		}
 		if connected1 {
 			go closer()
